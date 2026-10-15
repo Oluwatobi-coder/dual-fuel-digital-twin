@@ -97,13 +97,13 @@ python process_data.py
 The surrogate models successfully predict the target variables across the defined operating envelope.
 
 <p align="center">
-<img src="./results_images/localized_pareto_frontier.png" width="90%" alt="localized pareto frontier" />
+<img src="./result_images/localized_pareto_frontier.png" width="90%" alt="localized pareto frontier" />
 </p>
 
 ### Performance Insights
 
 <p align="center">
-<img src="./results_images/eda_parametric_trends.png" width="90%" alt="eda parametric trends" />
+<img src="./result_images/eda_parametric_trends.png" width="90%" alt="eda parametric trends" />
 </p>
 
 * **Efficiency Trade-offs:** The models capture the non-linear relationship between the methanol substitution ratio and Brake Thermal Efficiency (BTE) under varying BMEP loads.
