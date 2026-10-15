@@ -153,7 +153,7 @@ fig_pareto.add_trace(go.Scatter(
     x=local_nox, y=local_bte,
     mode='markers',
     marker=dict(size=4, color='lightgray'),
-    name='Continuous Search Space (300 MSR points)',
+    name='Continuous Search Space',
     hoverinfo='skip'
 ))
 
