@@ -193,8 +193,8 @@ fig_pareto.add_trace(go.Scatter(
 ))
 
 fig_pareto.update_layout(
-    xaxis_title='Predicted BSNOX [g/(kW·h)] - (Lower is Better)',
-    yaxis_title='Predicted BTE [%] - (Higher is Better)',
+    xaxis=dict(title='Predicted BSNOX [g/(kW·h)] - (Lower is Better)', fixedrange=True),
+    yaxis=dict(title='Predicted BTE [%] - (Higher is Better)', fixedrange=True),
     height=500,
     margin=dict(l=10, r=10, t=30, b=10),
     hovermode='closest',
@@ -207,7 +207,8 @@ fig_pareto.update_layout(
     ),
 )
 
-st.plotly_chart(fig_pareto, use_container_width=True)
+# Render the Pareto chart with the toolbar disabled
+st.plotly_chart(fig_pareto, use_container_width=True, config={'displayModeBar': True})
 
 st.divider()
 
@@ -220,15 +221,28 @@ col_bte, col_nox = st.columns(2)
 fig_bte = go.Figure()
 fig_bte.add_trace(go.Scatter(x=msr_sweep, y=local_bte, mode='lines', line=dict(color='blue', width=3)))
 fig_bte.add_vline(x=actual_msr, line_dash="dash", line_color="gold", annotation_text="Current Tuning")
-fig_bte.update_layout(title="Thermal Efficiency Response", xaxis_title="MSR (%)", yaxis_title="BTE (%)", height=350, margin=dict(l=0, r=0, t=40, b=0))
+fig_bte.update_layout(
+    title="Thermal Efficiency Response", 
+    xaxis=dict(title="MSR (%)", fixedrange=True), 
+    yaxis=dict(title="BTE (%)", fixedrange=True), 
+    height=350, 
+    margin=dict(l=0, r=0, t=40, b=0)
+)
 
 # generating the NOx response curve
 fig_nox = go.Figure()
 fig_nox.add_trace(go.Scatter(x=msr_sweep, y=local_nox, mode='lines', line=dict(color='red', width=3)))
 fig_nox.add_vline(x=actual_msr, line_dash="dash", line_color="gold", annotation_text="Current Tuning")
-fig_nox.update_layout(title="Thermal NOx Formation", xaxis_title="MSR (%)", yaxis_title="BSNOx (g/kWh)", height=350, margin=dict(l=0, r=0, t=40, b=0))
+fig_nox.update_layout(
+    title="Thermal NOx Formation", 
+    xaxis=dict(title="MSR (%)", fixedrange=True), 
+    yaxis=dict(title="BSNOx (g/kWh)", fixedrange=True), 
+    height=350, 
+    margin=dict(l=0, r=0, t=40, b=0)
+)
 
+# Render the response curves with the toolbars disabled
 with col_bte:
-    st.plotly_chart(fig_bte, use_container_width=True)
+    st.plotly_chart(fig_bte, use_container_width=True, config={'displayModeBar': True})
 with col_nox:
-    st.plotly_chart(fig_nox, use_container_width=True)
+    st.plotly_chart(fig_nox, use_container_width=True, config={'displayModeBar': True})
