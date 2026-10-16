@@ -193,8 +193,8 @@ fig_pareto.add_trace(go.Scatter(
 ))
 
 fig_pareto.update_layout(
-    xaxis=dict(title='Predicted BSNOX [g/(kW·h)] - (Lower is Better)', fixedrange=False),
-    yaxis=dict(title='Predicted BTE [%] - (Higher is Better)', fixedrange=False),
+    xaxis=dict(title='Predicted BSNOX [g/(kW·h)] - (Lower is Better)', fixedrange=True),
+    yaxis=dict(title='Predicted BTE [%] - (Higher is Better)', fixedrange=True),
     height=500,
     margin=dict(l=10, r=10, t=30, b=10),
     hovermode='closest',
@@ -223,8 +223,8 @@ fig_bte.add_trace(go.Scatter(x=msr_sweep, y=local_bte, mode='lines', line=dict(c
 fig_bte.add_vline(x=actual_msr, line_dash="dash", line_color="gold", annotation_text="Current Tuning")
 fig_bte.update_layout(
     title="Thermal Efficiency Response", 
-    xaxis=dict(title="MSR (%)", fixedrange=False), 
-    yaxis=dict(title="BTE (%)", fixedrange=False), 
+    xaxis=dict(title="MSR (%)", fixedrange=True), 
+    yaxis=dict(title="BTE (%)", fixedrange=True), 
     height=350, 
     margin=dict(l=0, r=0, t=40, b=0)
 )
@@ -235,8 +235,8 @@ fig_nox.add_trace(go.Scatter(x=msr_sweep, y=local_nox, mode='lines', line=dict(c
 fig_nox.add_vline(x=actual_msr, line_dash="dash", line_color="gold", annotation_text="Current Tuning")
 fig_nox.update_layout(
     title="Thermal NOx Formation", 
-    xaxis=dict(title="MSR (%)", fixedrange=False), 
-    yaxis=dict(title="BSNOx (g/kWh)", fixedrange=False), 
+    xaxis=dict(title="MSR (%)", fixedrange=True), 
+    yaxis=dict(title="BSNOx (g/kWh)", fixedrange=True), 
     height=350, 
     margin=dict(l=0, r=0, t=40, b=0)
 )
