@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Methanol/Natural Gas Dual-Fuel Engine Digital Twin 🔥")
+st.markdown("## Methanol/Natural Gas Dual-Fuel Engine Digital Twin 🔥")
 st.markdown("A real-time simulation tool predicting performance and emissions in real-time, powered by machine learning models trained on the WP10NG336E40 Spark-Ignition NG Engine.")
 
 # loading the ML models and caching them
@@ -42,53 +42,68 @@ def update_from_ng():
 def update_from_meth():
     st.session_state.ng_weight = 100 - st.session_state.meth_weight
 
-# setting the UI layout for the sidebar
-st.sidebar.header("🎛️ Operating Conditions")
 
-# setting the BMEP slider
-selected_bmep = st.sidebar.slider(
-    "Target Engine Load (BMEP MPa)", 
-    min_value=0.387, 
-    max_value=1.163, 
-    value=0.775, # Default starting point
-    step=0.01,
-    help="Dynamically scales the engine's mechanical power demand."
-)
+st.divider()
 
-st.sidebar.divider()
-st.sidebar.header("⛽ Fuel Injection Controls")
-st.sidebar.markdown("**Blend (% by weight)**")
+with st.expander("🎛️ Tune the Engine Load & Fuel Blend", expanded=True):
+    # implementing 2D Interpolation for the MSR
+    known_loads = [0.387, 0.775, 1.163]
+    known_mass_ratios = [0, 20, 40, 60, 80]
 
-# setting the natural gas & methanol sliders
-ng_slider = st.sidebar.slider("Natural Gas (NG) %", min_value=20, max_value=100, step=1, key='ng_weight', on_change=update_from_ng)
-meth_slider = st.sidebar.slider("Methanol %", min_value=0, max_value=80, step=1, key='meth_weight', on_change=update_from_meth)
+    # defining the physical MSR grid (Rows = Loads, Columns = Mass Ratios)
+    msr_grid = np.array([
+        [0.0, 7.7, 14.2, 20.1, 24.4], # 0.387 MPa row
+        [0.0, 7.5, 14.0, 19.4, 23.9], # 0.775 MPa row
+        [0.0, 7.2, 13.8, 19.1, 24.2]  # 1.163 MPa row
+    ])
 
-# implementing 2D Interpolation for the MSR
-known_loads = [0.387, 0.775, 1.163]
-known_mass_ratios = [0, 20, 40, 60, 80]
+    # Create 3 columns for the layout
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        selected_bmep = st.slider(
+            "Mechanical Load (BMEP in MPa)", 
+            min_value=0.387, 
+            max_value=1.163, 
+            value=0.78, 
+            step=0.01
+        )
 
-# defining the physical MSR grid (Rows = Loads, Columns = Mass Ratios)
-msr_grid = np.array([
-    [0.0, 7.7, 14.2, 20.1, 24.4], # 0.387 MPa row
-    [0.0, 7.5, 14.0, 19.4, 23.9], # 0.775 MPa row
-    [0.0, 7.2, 13.8, 19.1, 24.2]  # 1.163 MPa row
-])
+    with col2:
+        ng_slider = st.slider(
+            "Natural Gas (NG) %", 
+            min_value=20, 
+            max_value=100, 
+            step=1, 
+            key='ng_weight', 
+            on_change=update_from_ng
+        )
 
-# interpolating across the BMEP axis to generate a custom MSR array for the input load
-custom_load_msr_array = [
-    np.interp(selected_bmep, known_loads, msr_grid[:, i]) 
-    for i in range(len(known_mass_ratios))
-]
+    with col3:
+        meth_slider = st.slider(
+            "Methanol %", 
+            min_value=0, 
+            max_value=80, 
+            step=1, 
+            key='meth_weight', 
+            on_change=update_from_meth
+        )
 
-# interpolating across the Methanol mass percentage using the newly generated custom array
-actual_msr = np.interp(st.session_state.meth_weight, known_mass_ratios, custom_load_msr_array)
+    # interpolating across the BMEP axis to generate a custom MSR array for the input load
+    custom_load_msr_array = [
+        np.interp(selected_bmep, known_loads, msr_grid[:, i]) 
+        for i in range(len(known_mass_ratios))
+    ]
 
-st.sidebar.divider()
-st.sidebar.metric(
-    label="Calculated MSR", 
-    value=f"{actual_msr:.2f}%",
-    help="The actual percentage of combustion energy provided by methanol at this specific engine load."
-)
+    # interpolating across the Methanol mass percentage using the newly generated custom array
+    actual_msr = np.interp(st.session_state.meth_weight, known_mass_ratios, custom_load_msr_array)
+
+
+    # Display the resulting MSR directly below the sliders before the graphs start
+    st.metric(label="Effective Methanol Energy (MSR)", value=f"{actual_msr:.2f}%")
+
+st.divider() # Creates a visual break before your Tier 1, 2, and 3 graphs begin
+
 
 
 # making baseline prediction (0% Methanol) to calculate deltas
@@ -106,23 +121,23 @@ curr_thc = models['BSTHC'].predict(X_current)[0]
 curr_co2 = models['BSCO2'].predict(X_current)[0]
 
 
-# setting section for predicted engine outputs i.e. perfomance and emissions
-st.subheader("Real-Time Engine Output")
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric("Brake Thermal Efficiency (BTE)", f"{curr_bte:.2f} %", f"{curr_bte - base_bte:.2f} %")
-with col2:
-    st.metric("BSNOx Emissions", f"{curr_nox:.2f} g/kWh", f"{curr_nox - base_nox:.2f} g/kWh", delta_color="inverse")
-with col3:
-    st.metric("BSTHC Emissions", f"{curr_thc:.2f} g/kWh", f"{curr_thc - base_thc:.2f} g/kWh", delta_color="inverse")
-with col4:
-    st.metric("BSCO2 Emissions", f"{curr_co2:.1f} g/kWh", f"{curr_co2 - base_co2:.1f} g/kWh", delta_color="inverse")
+# setting section for predicted engine outputs i.e. performance and emissions
+with st.expander("📊 Real-Time Engine Output", expanded=True):
+    # Changing from 4 columns to 2 columns for a clean 2x2 mobile grid
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric("Brake Thermal Efficiency (BTE)", f"{curr_bte:.2f} %", f"{curr_bte - base_bte:.2f} %")
+        st.metric("BSTHC Emissions", f"{curr_thc:.2f} g/kWh", f"{curr_thc - base_thc:.2f} g/kWh", delta_color="inverse")
+        
+    with col2:
+        st.metric("BSNOx Emissions", f"{curr_nox:.2f} g/kWh", f"{curr_nox - base_nox:.2f} g/kWh", delta_color="inverse")
+        st.metric("BSCO2 Emissions", f"{curr_co2:.1f} g/kWh", f"{curr_co2 - base_co2:.1f} g/kWh", delta_color="inverse")
 
 st.divider()
 
 # setting plotly graph for interactive display of engine output and optimal operating boundaries
-st.subheader("Interactive Engine Tuning Map")
+st.subheader("🧭Interactive Engine Tuning Map")
 
 # generating the Local Search Space for the current BMEP
 msr_sweep = np.linspace(0, 25, 300)
@@ -181,8 +196,15 @@ fig_pareto.update_layout(
     xaxis_title='Predicted BSNOX [g/(kW·h)] - (Lower is Better)',
     yaxis_title='Predicted BTE [%] - (Higher is Better)',
     height=500,
-    margin=dict(l=0, r=0, t=30, b=0),
-    hovermode='closest'
+    margin=dict(l=10, r=10, t=30, b=10),
+    hovermode='closest',
+    legend=dict(
+        orientation="h",
+        yanchor="top",
+        y=-0.2,
+        xanchor="center",
+        x=0.5
+    ),
 )
 
 st.plotly_chart(fig_pareto, use_container_width=True)
@@ -191,7 +213,7 @@ st.divider()
 
 
 # setting the response curve sections
-st.subheader("Performance & Emission Curves")
+st.subheader("📈Performance & Emission Curves")
 col_bte, col_nox = st.columns(2)
 
 # generating the BTE response curve
