@@ -122,7 +122,7 @@ curr_co2 = models['BSCO2'].predict(X_current)[0]
 
 
 # setting section for predicted engine outputs i.e. performance and emissions
-with st.expander("📊 Real-Time Engine Output", expanded=True):
+with st.expander("📊 Real-Time Engine Output", expanded=False):
     # Changing from 4 columns to 2 columns for a clean 2x2 mobile grid
     col1, col2 = st.columns(2)
     
